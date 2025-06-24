@@ -1,0 +1,136 @@
+.auth-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.auth-modal {
+  background: var(--background-color, #2c2e31);
+  border-radius: 8px;
+  padding: 2rem;
+  width: 90%;
+  max-width: 400px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+  color: var(--text-color, #d1d0c5);
+}
+
+.auth-modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+}
+
+.auth-modal-header h2 {
+  margin: 0;
+  color: var(--main-color, #e2b714);
+}
+
+.close-btn {
+  background: none;
+  border: none;
+  color: var(--text-color, #d1d0c5);
+  font-size: 1.5rem;
+  cursor: pointer;
+  padding: 0;
+  width: 30px;
+  height: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px;
+  transition: background-color 0.2s;
+}
+
+.close-btn:hover {
+  background: var(--error-color, #ca4754);
+}
+
+.auth-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.5rem;
+}
+
+.auth-form input {
+  background: var(--sub-alt-color, #3c4043);
+  border: 2px solid transparent;
+  border-radius: 4px;
+  padding: 0.75rem;
+  color: var(--text-color, #d1d0c5);
+  font-size: 1rem;
+  transition: border-color 0.2s;
+}
+
+.auth-form input:focus {
+  outline: none;
+  border-color: var(--main-color, #e2b714);
+}
+
+.auth-form input::placeholder {
+  color: var(--sub-color, #646669);
+}
+
+.error-message {
+  background: var(--error-color, #ca4754);
+  color: white;
+  padding: 0.5rem;
+  border-radius: 4px;
+  font-size: 0.9rem;
+  text-align: center;
+}
+
+.auth-submit-btn {
+  background: var(--main-color, #e2b714);
+  color: var(--background-color, #2c2e31);
+  border: none;
+  border-radius: 4px;
+  padding: 0.75rem;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: opacity 0.2s;
+  margin-top: 0.5rem;
+}
+
+.auth-submit-btn:hover:not(:disabled) {
+  opacity: 0.9;
+}
+
+.auth-submit-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.auth-switch {
+  text-align: center;
+  margin-top: 1.5rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--sub-alt-color, #3c4043);
+}
+
+.link-btn {
+  background: none;
+  border: none;
+  color: var(--main-color, #e2b714);
+  cursor: pointer;
+  text-decoration: underline;
+  font-size: inherit;
+}
+
+.link-btn:hover {
+  opacity: 0.8;
+}

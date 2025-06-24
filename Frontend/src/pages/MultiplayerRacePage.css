@@ -1,0 +1,506 @@
+/* MultiplayerRacePage.css */
+
+.multiplayer-race-page {
+  min-height: 100vh;
+  background-color: #323437;
+  color: #d1d0c5;
+  font-family: 'Roboto Mono', 'Courier New', monospace;
+  padding: 2rem;
+}
+
+/* Join Race Form */
+.join-race-form {
+  max-width: 400px;
+  margin: 0 auto;
+  padding: 3rem;
+  background-color: #2c2e31;
+  border-radius: 8px;
+  text-align: center;
+}
+
+.join-race-form h1 {
+  color: #e2b714;
+  margin-bottom: 2rem;
+  font-size: 2rem;
+}
+
+.form-group {
+  margin-bottom: 1.5rem;
+  text-align: left;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 0.5rem;
+  color: #d1d0c5;
+  font-weight: 600;
+}
+
+.form-group input {
+  width: 100%;
+  padding: 0.75rem;
+  border: 1px solid #646669;
+  background-color: #323437;
+  color: #d1d0c5;
+  border-radius: 4px;
+  font-family: inherit;
+  font-size: 1rem;
+}
+
+.form-group input:focus {
+  outline: none;
+  border-color: #e2b714;
+  box-shadow: 0 0 0 2px rgba(226, 183, 20, 0.3);
+}
+
+.error-message {
+  color: #ca4754;
+  margin-bottom: 1rem;
+  font-size: 0.9rem;
+}
+
+.join-btn, .back-btn {
+  width: 100%;
+  padding: 0.75rem;
+  margin-bottom: 1rem;
+  border: none;
+  border-radius: 4px;
+  font-family: inherit;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.join-btn {
+  background-color: #e2b714;
+  color: #323437;
+}
+
+.join-btn:hover:not(:disabled) {
+  background-color: #c9a612;
+}
+
+.join-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.back-btn {
+  background-color: transparent;
+  color: #646669;
+  border: 1px solid #646669;
+}
+
+.back-btn:hover {
+  color: #d1d0c5;
+  border-color: #d1d0c5;
+}
+
+/* Race Header */
+.race-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid #2c2e31;
+}
+
+.race-header h1 {
+  color: #e2b714;
+  margin: 0;
+}
+
+.leave-btn {
+  background-color: transparent;
+  border: 1px solid #ca4754;
+  color: #ca4754;
+  padding: 0.5rem 1rem;
+  border-radius: 4px;
+  cursor: pointer;
+  font-family: inherit;
+  transition: all 0.2s ease;
+}
+
+.leave-btn:hover {
+  background-color: #ca4754;
+  color: #fff;
+}
+
+/* Waiting Area */
+.waiting-area {
+  text-align: center;
+  padding: 3rem;
+  background-color: #2c2e31;
+  border-radius: 8px;
+  margin-bottom: 2rem;
+}
+
+.waiting-area h2 {
+  color: #e2b714;
+  margin-bottom: 1rem;
+}
+
+.waiting-area p {
+  color: #646669;
+  font-size: 1.1rem;
+}
+
+/* Countdown Area */
+.countdown-area {
+  text-align: center;
+  padding: 3rem;
+  background-color: #2c2e31;
+  border-radius: 8px;
+  margin-bottom: 2rem;
+}
+
+.countdown-area h2 {
+  color: #e2b714;
+  margin-bottom: 1rem;
+}
+
+.countdown-timer {
+  font-size: 4rem;
+  font-weight: bold;
+  color: #ca4754;
+  animation: pulse 1s infinite;
+}
+
+@keyframes pulse {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.1); }
+  100% { transform: scale(1); }
+}
+
+/* Race Area */
+.race-area {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 2rem;
+  margin-bottom: 2rem;
+}
+
+.typing-section {
+  background-color: #2c2e31;
+  padding: 2rem;
+  border-radius: 8px;
+}
+
+.text-display {
+  font-size: 1.5rem;
+  line-height: 1.8;
+  margin-bottom: 2rem;
+  padding: 1rem;
+  background-color: #323437;
+  border-radius: 4px;
+  height: 200px;
+  overflow-y: auto;
+  border: 2px solid #646669;
+  transition: border-color 0.3s ease;
+  cursor: text;
+}
+
+.text-display:hover {
+  border-color: #e2b714;
+}
+
+.text-display.active {
+  border-color: #e2b714;
+  box-shadow: 0 0 0 1px rgba(226, 183, 20, 0.3);
+}
+
+.char {
+  position: relative;
+  transition: all 0.1s ease;
+}
+
+.char.correct {
+  color: #d1d0c5;
+  background-color: transparent;
+}
+
+.char.incorrect {
+  color: #ca4754;
+  background-color: #7e2a33;
+  border-radius: 2px;
+}
+
+.char.current {
+  background-color: #e2b714;
+  color: #323437;
+  border-radius: 2px;
+  animation: blink 1s infinite;
+}
+
+.char.space {
+  min-width: 0.5em;
+}
+
+.char.space.correct {
+  background-color: transparent;
+}
+
+.char.space.incorrect {
+  background-color: #7e2a33;
+  border-radius: 2px;
+}
+
+.char.space.current {
+  background-color: #e2b714;
+  border-radius: 2px;
+  animation: blink 1s infinite;
+}
+
+@keyframes blink {
+  0%, 50% { opacity: 1; }
+  51%, 100% { opacity: 0.3; }
+}
+
+.typing-input {
+  width: 100%;
+  padding: 1rem;
+  border: 2px solid #646669;
+  background-color: #323437;
+  color: #d1d0c5;
+  border-radius: 4px;
+  font-family: inherit;
+  font-size: 1.2rem;
+  margin-top: 1rem;
+  transition: all 0.3s ease;
+}
+
+.typing-input:focus {
+  outline: none;
+  border-color: #e2b714;
+  box-shadow: 0 0 0 2px rgba(226, 183, 20, 0.3);
+  background-color: #3a3d41;
+}
+
+.typing-input:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  background-color: #2a2c2f;
+}
+
+/* Your Stats */
+.your-stats {
+  background-color: #2c2e31;
+  padding: 1.5rem;
+  border-radius: 8px;
+  height: fit-content;
+}
+
+.your-stats h3 {
+  color: #e2b714;
+  margin-bottom: 1rem;
+  text-align: center;
+}
+
+.stats-row {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.stat {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.5rem 0;
+  border-bottom: 1px solid #646669;
+}
+
+.stat:last-child {
+  border-bottom: none;
+}
+
+.stat-label {
+  font-size: 0.9rem;
+  color: #646669;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.stat-value {
+  font-size: 1.2rem;
+  font-weight: 600;
+  color: #e2b714;
+}
+
+/* Players List */
+.players-list {
+  margin-top: 2rem;
+  background-color: #2c2e31;
+  padding: 1.5rem;
+  border-radius: 8px;
+}
+
+.players-list h3 {
+  color: #e2b714;
+  margin-bottom: 1rem;
+  text-align: center;
+}
+
+.players-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 1rem;
+}
+
+.player-card {
+  background-color: #323437;
+  padding: 1rem;
+  border-radius: 4px;
+  border: 1px solid #646669;
+  transition: all 0.2s ease;
+}
+
+.player-card.finished {
+  border-color: #e2b714;
+  background-color: rgba(226, 183, 20, 0.1);
+}
+
+.player-info {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.5rem;
+}
+
+.player-name {
+  font-weight: 600;
+  color: #d1d0c5;
+}
+
+.guest-badge {
+  background-color: #646669;
+  color: #323437;
+  padding: 0.2rem 0.5rem;
+  border-radius: 3px;
+  font-size: 0.7rem;
+  text-transform: uppercase;
+}
+
+.player-stats {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 0.5rem;
+  font-size: 0.8rem;
+}
+
+.progress-bar {
+  height: 4px;
+  background-color: #646669;
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.progress-fill {
+  height: 100%;
+  background-color: #e2b714;
+  transition: width 0.3s ease;
+}
+
+/* Race Results */
+.race-results {
+  background-color: #2c2e31;
+  padding: 2rem;
+  border-radius: 8px;
+  text-align: center;
+  margin-bottom: 2rem;
+}
+
+.race-results h2 {
+  color: #e2b714;
+  margin-bottom: 1rem;
+  font-size: 2rem;
+}
+
+.winner-announcement {
+  font-size: 1.5rem;
+  color: #d1d0c5;
+  margin-bottom: 2rem;
+}
+
+.final-rankings {
+  margin-bottom: 2rem;
+}
+
+.final-rankings h3 {
+  color: #e2b714;
+  margin-bottom: 1rem;
+}
+
+.ranking-item {
+  display: grid;
+  grid-template-columns: 50px 1fr 80px 80px;
+  gap: 1rem;
+  padding: 0.75rem;
+  background-color: #323437;
+  margin-bottom: 0.5rem;
+  border-radius: 4px;
+  align-items: center;
+}
+
+.ranking-item .rank {
+  font-weight: bold;
+  color: #e2b714;
+}
+
+.ranking-item .name {
+  text-align: left;
+}
+
+.ranking-item .wpm,
+.ranking-item .accuracy {
+  text-align: center;
+  font-weight: 600;
+}
+
+.back-to-menu-btn {
+  background-color: #e2b714;
+  color: #323437;
+  border: none;
+  padding: 0.75rem 2rem;
+  border-radius: 4px;
+  font-family: inherit;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.back-to-menu-btn:hover {
+  background-color: #c9a612;
+}
+
+/* Responsive Design */
+@media (max-width: 1024px) {
+  .race-area {
+    grid-template-columns: 1fr;
+  }
+  
+  .players-grid {
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  }
+}
+
+@media (max-width: 768px) {
+  .multiplayer-race-page {
+    padding: 1rem;
+  }
+  
+  .text-display {
+    font-size: 1.2rem;
+    height: 150px;
+  }
+  
+  .countdown-timer {
+    font-size: 3rem;
+  }
+  
+  .ranking-item {
+    grid-template-columns: 40px 1fr 60px 60px;
+    font-size: 0.9rem;
+  }
+}

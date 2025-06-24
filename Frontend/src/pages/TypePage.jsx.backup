@@ -1,0 +1,605 @@
+import React, { useState, useEffect, useRef, useCallback } from 'react'
+import './TypePage.css'
+
+// Emergency fallback text (only used if backend is completely unavailable)
+const EMERGENCY_FALLBACK = "The quick brown fox jumps over the lazy dog and runs through the forest with great speed and agility while avoiding all obstacles."
+
+// Backend API configuration
+const BACKEND_API_BASE = 'http://localhost:5002/api/text'
+
+const TypePage = () => {  // Test configuration
+  const [testMode, setTestMode] = useState('time') // 'time', 'words', 'quote'
+  const [timeLimit, setTimeLimit] = useState(30)
+  const [wordCount, setWordCount] = useState(50)
+  const [textSource, setTextSource] = useState('mixed') // 'mixed', 'quotes', 'lorem', 'news'
+  const [isLoadingText, setIsLoadingText] = useState(false)
+    // Test state
+  const [isActive, setIsActive] = useState(false)
+  const [timeLeft, setTimeLeft] = useState(30)
+  const [typedText, setTypedText] = useState('')
+  const [startTime, setStartTime] = useState(null)
+    // Stats
+  const [wpm, setWpm] = useState(0)
+  const [accuracy, setAccuracy] = useState(100)
+  const [totalChars, setTotalChars] = useState(0)
+  const [correctChars, setCorrectChars] = useState(0)
+  
+  // Results
+  const [showResults, setShowResults] = useState(false)
+  
+  // Refs
+  const inputRef = useRef(null)
+  const resetButtonRef = useRef(null)
+  const textDisplayRef = useRef(null)
+  
+  // Text state
+  const [currentText, setCurrentText] = useState('')
+  
+  const resetTest = useCallback(() => {
+    setIsActive(false)
+    setTimeLeft(timeLimit)
+    setTypedText('')
+    setStartTime(null)
+    setWpm(0)
+    setAccuracy(100)
+    setTotalChars(0)
+    setCorrectChars(0)
+    setShowResults(false)
+    // Scroll text display back to top and ensure focus returns to input after reset
+    setTimeout(() => {
+      if (textDisplayRef.current) {
+        textDisplayRef.current.scrollTop = 0
+      }
+      if (inputRef.current) {
+        inputRef.current.focus()
+      }
+    }, 0)  }, [timeLimit])
+
+  // Auto-scroll function to keep current typing position visible
+  const autoScrollToCurrentPosition = useCallback(() => {
+    if (!textDisplayRef.current) return
+    
+    const currentChar = textDisplayRef.current.querySelector('.char.current')
+    if (!currentChar) return
+    
+    const container = textDisplayRef.current
+    const containerRect = container.getBoundingClientRect()
+    const charRect = currentChar.getBoundingClientRect()
+    
+    // Calculate line height based on CSS
+    const computedStyle = getComputedStyle(container)
+    const fontSize = parseFloat(computedStyle.fontSize)
+    const lineHeight = parseFloat(computedStyle.lineHeight) || fontSize * 1.8
+    
+    // Calculate which line the current character is on
+    const charTop = charRect.top - containerRect.top + container.scrollTop
+    const currentLine = Math.floor(charTop / lineHeight)
+    
+    // We want to keep the typing in the middle line (line 1 of 3 visible lines)
+    const targetMiddleLine = 1
+    const targetScrollTop = (currentLine - targetMiddleLine) * lineHeight
+    
+    // Only scroll if needed and ensure we don't scroll to negative values
+    if (currentLine > targetMiddleLine) {
+      container.scrollTop = Math.max(0, targetScrollTop)
+    }
+  }, [])
+
+  const generateNewText = useCallback(async () => {
+    // Always fetch from backend API
+    setIsLoadingText(true)
+    try {
+      const params = new URLSearchParams({
+        source: textSource,
+        mode: testMode,
+        wordCount: wordCount.toString(),
+        // Add timestamp to prevent caching issues
+        _t: Date.now().toString()
+      })
+      
+      const response = await fetch(`${BACKEND_API_BASE}/random?${params}`)
+      
+      if (!response.ok) {
+        throw new Error(`Backend API error: ${response.status}`)
+      }
+      
+      const data = await response.json()
+        if (data.success && data.data && data.data.text) {
+        const text = data.data.text
+        setCurrentText(text)
+        resetTest()
+      } else {
+        throw new Error('Invalid response format from backend')
+      }
+    } catch (error) {
+      console.error('Error fetching text from backend:', error)
+      // Emergency fallback - only if backend is completely unavailable
+      const text = EMERGENCY_FALLBACK
+      setCurrentText(text)
+      resetTest()
+    } finally {
+      setIsLoadingText(false)
+    }
+  }, [testMode, wordCount, textSource, resetTest])
+
+  // Handler for changing text source and generating new text
+  const handleTextSourceChange = useCallback((newSource) => {
+    setTextSource(newSource)
+    // Generate new text with the new source after a brief delay to ensure state is updated
+    setTimeout(() => {
+      generateNewText()
+    }, 0)
+  }, [generateNewText])
+
+  // Handler for changing test mode and generating new text
+  const handleTestModeChange = useCallback((newMode) => {
+    setTestMode(newMode)
+    setTimeout(() => {
+      generateNewText()
+    }, 0)
+  }, [generateNewText])
+
+  // Handler for changing word count and generating new text
+  const handleWordCountChange = useCallback((newCount) => {
+    setWordCount(newCount)
+    setTimeout(() => {
+      generateNewText()
+    }, 0)
+  }, [generateNewText])
+
+  // Handler for changing time limit and generating new text
+  const handleTimeLimitChange = useCallback((newTime) => {
+    setTimeLimit(newTime)
+    setTimeLeft(newTime)
+    setTimeout(() => {
+      generateNewText()
+    }, 0)
+  }, [generateNewText])
+
+  // Initialize test
+  useEffect(() => {
+    generateNewText()
+  }, [generateNewText])
+  
+  // Timer effect
+  useEffect(() => {
+    let interval = null
+    if (isActive && timeLeft > 0 && !showResults) {
+      interval = setInterval(() => {
+        setTimeLeft(time => {
+          if (time <= 1) {
+            endTest()
+            return 0
+          }
+          return time - 1
+        })
+      }, 1000)
+    }
+    return () => clearInterval(interval)
+  }, [isActive, timeLeft, showResults])
+  
+  // Calculate WPM and accuracy
+  useEffect(() => {
+    if (isActive && startTime) {
+      const timeElapsed = (Date.now() - startTime) / 1000 / 60 // minutes
+      const wordsTyped = correctChars / 5 // standard word length
+      setWpm(Math.round(wordsTyped / timeElapsed) || 0)
+      setAccuracy(Math.round((correctChars / totalChars) * 100) || 100)
+    }
+  }, [correctChars, totalChars, startTime, isActive])
+  
+  const startTest = () => {
+    if (!isActive) {
+      setIsActive(true)
+      setStartTime(Date.now())
+    }
+  }
+  
+  const endTest = () => {
+    setIsActive(false)
+    setShowResults(true)
+  }
+  // Focus management - keep focus on typing input
+  const refocusInput = useCallback(() => {
+    if (inputRef.current && !showResults) {
+      inputRef.current.focus()
+    }
+  }, [showResults])
+
+  // Global click handler to refocus input
+  const handlePageClick = useCallback((e) => {
+    // Don't refocus if clicking on interactive elements
+    const interactiveElements = ['BUTTON', 'A', 'INPUT']
+    if (!interactiveElements.includes(e.target.tagName) && !showResults) {
+      setTimeout(() => refocusInput(), 0)
+    }
+  }, [refocusInput, showResults])
+
+  const handleInputChange = (e) => {
+    const value = e.target.value
+    
+    // Prevent typing beyond the text length
+    if (value.length > currentText.length) {
+      return
+    }
+    
+    setTypedText(value)
+    
+    if (!isActive) {
+      startTest()
+    }
+    
+    // Calculate stats
+    setTotalChars(value.length)
+    let correct = 0
+    for (let i = 0; i < value.length; i++) {
+      if (i < currentText.length && value[i] === currentText[i]) {
+        correct++
+      }
+    }
+    setCorrectChars(correct)
+    
+    // Auto-scroll to keep current position visible
+    setTimeout(() => autoScrollToCurrentPosition(), 0)
+    
+    // Check for test completion - user has typed the entire text correctly
+    if (value.length === currentText.length && value === currentText) {
+      setTimeout(() => {
+        endTest()
+      }, 100) // Small delay to ensure stats are updated
+    }
+  }
+  // Global keydown handler to refocus input and handle typing when not focused
+  const handleGlobalKeyDown = useCallback((e) => {
+    // Skip if we're in results mode or if it's a special key
+    if (showResults || e.ctrlKey || e.metaKey || e.altKey) return
+    
+    // Special keys that shouldn't trigger refocus
+    const specialKeys = ['Tab', 'Enter', 'Escape', 'F1', 'F2', 'F3', 'F4', 'F5', 'F6', 'F7', 'F8', 'F9', 'F10', 'F11', 'F12']
+    if (specialKeys.includes(e.key)) return
+    
+    // If the input is not focused and it's a typing character, refocus and continue
+    if (document.activeElement !== inputRef.current) {
+      e.preventDefault()
+      refocusInput()
+        // If it's a valid typing character, add it to the input
+      if (e.key.length === 1) {
+        // Simulate the keypress on the input
+        setTimeout(() => {
+          if (inputRef.current) {
+            const currentValue = inputRef.current.value
+            const newValue = currentValue + e.key
+            
+            // Prevent typing beyond the text length
+            if (newValue.length > currentText.length) {
+              return
+            }
+            
+            // Update the input value
+            inputRef.current.value = newValue
+            setTypedText(newValue)
+            
+            // Start test if not active
+            if (!isActive) {
+              setIsActive(true)
+              setStartTime(Date.now())
+            }
+            
+            // Calculate stats
+            setTotalChars(newValue.length)
+            let correct = 0
+            for (let i = 0; i < newValue.length; i++) {
+              if (i < currentText.length && newValue[i] === currentText[i]) {
+                correct++
+              }            }
+            setCorrectChars(correct)
+            
+            // Auto-scroll to keep current position visible
+            setTimeout(() => autoScrollToCurrentPosition(), 0)
+            
+            // Check for test completion - user has typed the entire text correctly
+            if (newValue.length === currentText.length && newValue === currentText) {
+              setTimeout(() => {
+                endTest()
+              }, 100) // Small delay to ensure stats are updated
+            }
+          }
+        }, 0)
+      }
+    }
+  }, [showResults, refocusInput, isActive, currentText, autoScrollToCurrentPosition])
+
+  // Add event listeners for focus management
+  useEffect(() => {
+    document.addEventListener('click', handlePageClick)
+    document.addEventListener('keydown', handleGlobalKeyDown)
+    
+    return () => {
+      document.removeEventListener('click', handlePageClick)
+      document.removeEventListener('keydown', handleGlobalKeyDown)
+    }
+  }, [handlePageClick, handleGlobalKeyDown])
+  const handleKeyDown = (e) => {
+    if (e.key === 'Tab') {
+      e.preventDefault()
+      // Focus the reset button instead of directly resetting
+      if (resetButtonRef.current) {
+        resetButtonRef.current.focus()
+      }
+    }
+  }
+
+  const handleResetButtonKeyDown = (e) => {
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault()
+      resetTest()
+      // Return focus to the typing input after reset
+      setTimeout(() => {
+        if (inputRef.current) {
+          inputRef.current.focus()
+        }
+      }, 0)
+    } else if (e.key === 'Escape') {
+      e.preventDefault()
+      // Return focus to typing input without resetting
+      if (inputRef.current) {
+        inputRef.current.focus()
+      }
+    }
+  }
+  const getCharClass = (charIndex) => {
+    if (charIndex < typedText.length) {
+      return typedText[charIndex] === currentText[charIndex] ? 'correct' : 'incorrect'
+    }
+    return charIndex === typedText.length ? 'current' : ''
+  }
+  const renderText = () => {
+    const words = currentText.split(' ')
+    let charIndex = 0
+    
+    return words.map((word, wordIndex) => {
+      const wordStartIndex = charIndex
+      charIndex += word.length
+      
+      const wordElement = (
+        <span key={wordIndex} className="word" data-word={word}>
+          {word.split('').map((char, index) => {
+            const currentCharIndex = wordStartIndex + index
+            return (
+              <span
+                key={currentCharIndex}
+                className={`char ${getCharClass(currentCharIndex)}`}
+              >
+                {char}
+              </span>
+            )
+          })}
+        </span>
+      )
+      
+      // Add space after word (except for the last word)
+      if (wordIndex < words.length - 1) {
+        const spaceIndex = charIndex
+        charIndex += 1 // +1 for the space
+        
+        return (
+          <React.Fragment key={`word-${wordIndex}`}>
+            {wordElement}
+            <span 
+              className={`char space ${getCharClass(spaceIndex)}`}
+            >
+              {' '}
+            </span>
+          </React.Fragment>
+        )
+      }
+      
+      return wordElement
+    })
+  }
+  
+  return (
+    <div className="type-page">
+      {/* Header */}
+      <header className="header">
+        <div className="logo">
+          <span className="logo-text">TypeMaster</span>
+        </div>
+        <nav className="nav">
+          <button className="nav-item">settings</button>
+          <button className="nav-item">about</button>
+          <button className="nav-item">account</button>
+        </nav>
+      </header>      {/* Test Configuration */}
+      <div className="test-config">        <div className="config-group">
+          <button 
+            className={`config-btn ${testMode === 'time' ? 'active' : ''}`}
+            onClick={() => handleTestModeChange('time')}
+          >
+            time
+          </button>
+          <button 
+            className={`config-btn ${testMode === 'words' ? 'active' : ''}`}
+            onClick={() => handleTestModeChange('words')}
+          >
+            words
+          </button>
+          <button 
+            className={`config-btn ${testMode === 'quote' ? 'active' : ''}`}
+            onClick={() => handleTestModeChange('quote')}
+          >
+            quote
+          </button>
+        </div>{/* Text Source Selector */}
+        <div className="config-group">
+          <span className="config-label">source:</span>          <button 
+            className={`config-btn ${textSource === 'mixed' ? 'active' : ''}`}
+            onClick={() => handleTextSourceChange('mixed')}
+          >
+            mixed
+          </button>
+          <button 
+            className={`config-btn ${textSource === 'quotes' ? 'active' : ''}`}
+            onClick={() => handleTextSourceChange('quotes')}
+          >
+            quotes
+          </button>
+          <button 
+            className={`config-btn ${textSource === 'lorem' ? 'active' : ''}`}
+            onClick={() => handleTextSourceChange('lorem')}
+          >
+            lorem
+          </button>
+          <button 
+            className={`config-btn ${textSource === 'news' ? 'active' : ''}`}
+            onClick={() => handleTextSourceChange('news')}
+          >
+            news
+          </button>
+        </div>
+          {testMode === 'time' && (
+          <div className="config-group">
+            {[15, 30, 60, 120].map(time => (
+              <button
+                key={time}
+                className={`config-btn ${timeLimit === time ? 'active' : ''}`}
+                onClick={() => handleTimeLimitChange(time)}
+              >
+                {time}
+              </button>
+            ))}
+          </div>
+        )}
+          {testMode === 'words' && (
+          <div className="config-group">
+            {[10, 25, 50, 100].map(count => (
+              <button
+                key={count}
+                className={`config-btn ${wordCount === count ? 'active' : ''}`}
+                onClick={() => handleWordCountChange(count)}
+              >
+                {count}
+              </button>
+            ))}
+          </div>
+        )}
+      </div>      {/* Stats Bar */}
+      <div className="stats-bar">
+        <div className="stat">
+          <span className="stat-label">wpm</span>
+          <span className="stat-value">{wpm}</span>
+        </div>
+        <div className="stat">
+          <span className="stat-label">acc</span>
+          <span className="stat-value">{accuracy}%</span>
+        </div>
+        {testMode === 'time' && (
+          <div className="stat">
+            <span className="stat-label">time</span>
+            <span className="stat-value">{timeLeft}</span>
+          </div>
+        )}
+        {(testMode === 'words' || testMode === 'quote') && (
+          <div className="stat">
+            <span className="stat-label">progress</span>
+            <span className="stat-value">
+              {typedText.length}/{currentText.length}
+            </span>
+          </div>
+        )}
+      </div>{/* Main Typing Area */}
+      <div className="typing-area">
+        {!showResults ? (
+          <>            <div className="text-display" ref={textDisplayRef}>
+              {isLoadingText ? (
+                <div className="loading-text">
+                  <div className="loading-spinner"></div>
+                  <span>Loading new text...</span>
+                </div>
+              ) : (
+                renderText()
+              )}
+            </div>
+            
+            <input
+              ref={inputRef}
+              type="text"
+              value={typedText}
+              onChange={handleInputChange}
+              onKeyDown={handleKeyDown}
+              className="typing-input"
+              placeholder="Start typing anywhere to begin the test..."
+              disabled={showResults}
+              autoFocus
+            />
+              <div className="test-controls">
+              <button 
+                ref={resetButtonRef}
+                className="reset-btn-inline" 
+                onClick={resetTest} 
+                onKeyDown={handleResetButtonKeyDown}
+                title="Press Enter to reset test"
+              >
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <polyline points="23 4 23 10 17 10"></polyline>
+                  <polyline points="1 20 1 14 7 14"></polyline>
+                  <path d="m3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path>
+                </svg>
+                restart
+              </button>              <div className="instructions">
+                <p>Press Tab to focus restart button, then Enter to reset</p>
+                <p className="typing-hint">💡 You can type from anywhere on the page - focus will automatically return to the typing area</p>
+              </div>
+            </div>
+          </>        ) : (
+          <div className="results">
+            <div className="completion-message">
+              <h2>Test Complete!</h2>
+              <p>
+                {typedText.length === currentText.length && typedText === currentText 
+                  ? '🎉 Perfect! You completed the entire text!'
+                  : `Test ended after ${Math.floor((Date.now() - startTime) / 1000)} seconds`
+                }
+              </p>
+            </div>
+            
+            <div className="result-stats">
+              <div className="result-item">
+                <span className="result-label">wpm</span>
+                <span className="result-value">{wpm}</span>
+              </div>
+              <div className="result-item">
+                <span className="result-label">acc</span>
+                <span className="result-value">{accuracy}%</span>
+              </div>
+              <div className="result-item">
+                <span className="result-label">characters</span>
+                <span className="result-value">{correctChars}/{totalChars}</span>
+              </div>
+              <div className="result-item">
+                <span className="result-label">time</span>
+                <span className="result-value">{startTime ? Math.floor((Date.now() - startTime) / 1000) : 0}s</span>
+              </div>
+            </div>
+            
+            <button className="restart-btn" onClick={resetTest}>
+              restart test
+            </button>
+          </div>
+        )}
+      </div>
+
+      {/* Footer */}
+      <footer className="footer">
+        <div className="footer-links">
+          <a href="#" className="footer-link">contact</a>
+          <a href="#" className="footer-link">support</a>
+          <a href="#" className="footer-link">github</a>
+          <a href="#" className="footer-link">discord</a>
+        </div>
+      </footer>
+    </div>
+  )
+}
+
+export default TypePage

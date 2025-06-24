@@ -1,0 +1,54 @@
+@import url('https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@300;400;500;600;700&display=swap');
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: 'Roboto Mono', 'Courier New', monospace;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  background-color: #323437;
+  color: #d1d0c5;
+  overflow-x: hidden;
+}
+
+#root {
+  min-height: 100vh;
+  width: 100%;
+}
+
+/* Remove default button and input styles */
+button {
+  border: none;
+  background: none;
+  cursor: pointer;
+  font-family: inherit;
+}
+
+input {
+  border: none;
+  outline: none;
+  font-family: inherit;
+}
+
+/* Scrollbar customization */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #2c2e31;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #646669;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #d1d0c5;
+}
