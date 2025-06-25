@@ -1,5 +1,5 @@
 import React from 'react'
-import TextDisplay from './TextDisplay'
+import UnifiedTextDisplay from '../common/UnifiedTextDisplay'
 import TypingInput from './TypingInput'
 import TestControls from './TestControls'
 import TestResults from './TestResults'
@@ -33,11 +33,12 @@ const TypingArea = ({
     <div className="typing-area">
       {!showResults ? (
         <>
-          <TextDisplay
+          <UnifiedTextDisplay
             currentText={currentText}
             typedText={typedText}
             isLoadingText={isLoadingText}
             textDisplayRef={textDisplayRef}
+            renderMode="words"
           />
           
           <TypingInput

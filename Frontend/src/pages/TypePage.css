@@ -143,16 +143,10 @@
 }
 
 .text-display {
-  font-size: 1.5rem;
-  line-height: 1.8;
+  /* Core positioning and overflow behavior - let UnifiedTextDisplay handle sizing */
   max-width: 900px;
   margin-bottom: 2rem;
   text-align: left;
-  padding: 0; /* Remove padding to blend with background */
-  border-radius: 0; /* Remove border radius */
-  background-color: transparent; /* Make background transparent */
-  height: calc(1.5rem * 1.8 * 3); /* Exactly 3 lines high */
-  overflow: hidden; /* Hide all scrollbars and overflow */
   display: flex;
   flex-wrap: wrap;
   align-content: flex-start;
@@ -320,12 +314,6 @@
   margin: 0.3rem 0;
 }
 
-.typing-hint {
-  color: #e2b714 !important;
-  font-size: 0.75rem !important;
-  opacity: 0.8;
-  font-style: italic;
-}
 
 /* Results */
 .results {
@@ -468,9 +456,10 @@
   }
 }
 
-@media (max-width: 480px) {  .text-display {
-    font-size: 1rem;
-    height: calc(1rem * 1.8 * 3); /* Adjust for smallest font size */
+@media (max-width: 480px) {
+  .text-display {
+    /* Let UnifiedTextDisplay handle responsive sizing */
+    max-width: 100%;
   }
 
   .config-group {

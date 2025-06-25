@@ -117,7 +117,7 @@ raceSchema.methods.addPlayer = async function(playerData) {
     const result = await this.constructor.findOneAndUpdate(
       { 
         _id: this._id,
-        status: 'waiting',
+        status: { $in: ['waiting', 'countdown'] }, // Allow joining during countdown too
         $expr: { $lt: [{ $size: "$players" }, "$maxPlayers"] },
         'players.socketId': { $ne: playerData.socketId }
       },
@@ -131,8 +131,8 @@ raceSchema.methods.addPlayer = async function(playerData) {
     );
 
     if (!result) {
-      if (this.status !== 'waiting') {
-        throw new Error('Race has already started');
+      if (!['waiting', 'countdown'].includes(this.status)) {
+        throw new Error('Race has already started or finished');
       }
       if (this.players.length >= this.maxPlayers) {
         throw new Error('Race is full');

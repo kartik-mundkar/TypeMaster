@@ -8,7 +8,7 @@ class SocketService {
     this.listeners = new Map();
   }
 
-  connect(serverUrl = API_CONFIG.BASE_URL) {
+  connect(serverUrl = API_CONFIG.SOCKET_URL) {
     if (this.socket && this.isConnected) {
       return this.socket;
     }
@@ -26,17 +26,17 @@ class SocketService {
 
   setupEventListeners() {
     this.socket.on('connect', () => {
-      console.log('🟢 Connected to multiplayer server');
+      console.log('Connected to multiplayer server');
       this.isConnected = true;
     });
 
     this.socket.on('disconnect', () => {
-      console.log('🔴 Disconnected from multiplayer server');
+      console.log('Disconnected from multiplayer server');
       this.isConnected = false;
     });
 
     this.socket.on('connect_error', (error) => {
-      console.error('❌ Connection error:', error);
+      console.error('Connection error:', error);
     });
   }
 
@@ -49,9 +49,9 @@ class SocketService {
   }
   // Race events
   joinRace(userData) {
-    console.log('🚀 Joining race with data:', userData);
+    console.log('Joining race with data:', userData);
     if (!this.socket) {
-      console.error('❌ Socket not connected when trying to join race');
+      console.error('Socket not connected when trying to join race');
       return;
     }
     this.socket.emit('join-race', userData);
@@ -121,6 +121,22 @@ class SocketService {
   onRaceError(callback) {
     if (!this.socket) return;
     this.socket.on('race-error', callback);
+  }
+
+  // Connection event listeners
+  onConnect(callback) {
+    if (!this.socket) return;
+    this.socket.on('connect', callback);
+  }
+
+  onDisconnect(callback) {
+    if (!this.socket) return;
+    this.socket.on('disconnect', callback);
+  }
+
+  onConnectError(callback) {
+    if (!this.socket) return;
+    this.socket.on('connect_error', callback);
   }
 
   // Clean up event listeners

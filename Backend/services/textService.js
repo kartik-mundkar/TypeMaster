@@ -147,7 +147,7 @@ class TextService {  async getRandomText({ source, mode, wordCount, difficulty }
   async getLoremText({ paragraphs = 4 }) {
     try {
       // Try a different lorem API that's more reliable
-      const url = `https://jsonplaceholder.typicode.com/posts/1`;
+      const url = `https://jsonplaceholder.typicode.com/posts/${Math.floor(Math.random() * 100) + 1}`;
       const response = await axios.get(url, { timeout: 5000 });
       
       if (response.data && response.data.body) {

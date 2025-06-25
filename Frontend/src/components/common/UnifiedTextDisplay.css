@@ -1,0 +1,122 @@
+/* Unified Text Display Component Styles */
+.unified-text-display {
+  /* Base styles for consistent 3-line display */
+  font-size: 1.2rem;
+  line-height: 1.6;
+  height: 6rem; /* Slightly larger for better readability: 1.2rem * 1.6 * 3 + padding = ~6rem */
+  overflow: hidden; /* Hide overflow beyond 3 lines */
+  position: relative;
+  padding: 0.6rem;
+  margin: 0.5rem 0;
+  width: 100%;
+  font-family: monospace;
+  white-space: pre-wrap;
+  word-wrap: break-word;
+}
+
+/* Text content wrapper for smooth scrolling */
+.unified-text-display .text-content {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  padding: inherit;
+  transition: transform 0.3s ease;
+}
+
+/* Loading state styles */
+.unified-text-display .loading-text {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  gap: 0.5rem;
+  color: #666;
+}
+
+.unified-text-display .loading-spinner {
+  width: 20px;
+  height: 20px;
+  border: 2px solid #f3f3f3;
+  border-top: 2px solid #007bff;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* Character and word styling */
+.unified-text-display .char {
+  position: relative;
+}
+
+.unified-text-display .char.correct {
+  color: #28a745;
+  background-color: transparent;
+}
+
+.unified-text-display .char.incorrect {
+  color: #dc3545;
+  background-color: #ffe6e6;
+}
+
+.unified-text-display .char.current {
+  background-color: #007bff;
+  color: white;
+  animation: blink 1s infinite;
+}
+
+.unified-text-display .char.space {
+  display: inline-block;
+  min-width: 0.5rem;
+}
+
+.unified-text-display .word {
+  display: inline;
+  word-break: keep-all;
+}
+
+@keyframes blink {
+  0%, 50% { opacity: 1; }
+  51%, 100% { opacity: 0.3; }
+}
+
+/* Clickable state */
+.unified-text-display.clickable {
+  cursor: text;
+}
+
+.unified-text-display.clickable:hover {
+  border-color: #007bff;
+}
+
+/* Tablet and smaller desktop screens */
+@media (max-width: 768px) {
+  .unified-text-display {
+    font-size: 1.1rem;
+    height: 5.5rem; /* 1.1rem * 1.6 * 3 + padding */
+    padding: 0.5rem;
+  }
+}
+
+/* Mobile screens */
+@media (max-width: 480px) {
+  .unified-text-display {
+    font-size: 1rem;
+    height: 5rem; /* 1rem * 1.6 * 3 + padding */
+    padding: 0.4rem;
+    margin: 0.3rem 0;
+  }
+}
+
+/* Very small mobile screens */
+@media (max-width: 320px) {
+  .unified-text-display {
+    font-size: 0.9rem;
+    height: 4.5rem; /* 0.9rem * 1.6 * 3 + padding */
+    padding: 0.3rem;
+  }
+}

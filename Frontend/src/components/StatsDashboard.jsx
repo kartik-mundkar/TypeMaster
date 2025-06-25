@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../hooks/useAuth';
+import { API_CONFIG } from '../config/api';
 import './StatsDashboard.css';
 
 const StatsDashboard = ({ isOpen, onClose }) => {
@@ -9,41 +10,83 @@ const StatsDashboard = ({ isOpen, onClose }) => {
   const { user } = useAuth();
 
   useEffect(() => {
+    const fetchStats = async () => {
+      setLoading(true);
+      setError('');
+
+      try {
+        const token = localStorage.getItem('authToken');
+        const sessionId = localStorage.getItem('guestSessionId');
+        
+        console.log('=== STATS FETCH DEBUG ===');
+        console.log('Token exists:', !!token);
+        console.log('Session ID:', sessionId);
+        console.log('User from context:', user);
+        
+        let url = `${API_CONFIG.RESULTS_API}/stats/summary`;
+        const headers = { 'Content-Type': 'application/json' };
+        
+        if (token) {
+          headers.Authorization = `Bearer ${token}`;
+          console.log('Using token authentication');
+        } else if (sessionId) {
+          url += `?sessionId=${sessionId}`;
+          console.log('Using guest session authentication');
+        } else {
+          console.log('⚠️ NO AUTHENTICATION FOUND - Creating guest session...');
+          // Create guest session if none exists
+          try {
+            const guestResponse = await fetch(`${API_CONFIG.AUTH_API}/guest-session`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' }
+            });
+            const guestData = await guestResponse.json();
+            if (guestData.success) {
+              const newSessionId = guestData.data.sessionId;
+              localStorage.setItem('guestSessionId', newSessionId);
+              url += `?sessionId=${newSessionId}`;
+              console.log('✅ Created new guest session:', newSessionId);
+            } else {
+              throw new Error('Failed to create guest session');
+            }
+          } catch (guestError) {
+            console.error('Failed to create guest session:', guestError);
+            setError('Unable to access statistics. Please try again.');
+            setLoading(false);
+            return;
+          }
+        }
+
+        console.log('Final URL:', url);
+        console.log('Final headers:', headers);
+
+        const response = await fetch(url, { headers });
+        const data = await response.json();
+
+        console.log('Response status:', response.status);
+        console.log('Full response data:', data);
+
+        if (data.success) {
+          console.log('✅ Stats received successfully');
+          console.log('Summary:', data.data.summary);
+          console.log('Recent tests:', data.data.recentTests?.length || 0);
+          setStats(data.data);
+        } else {
+          console.error('❌ API error:', data.message);
+          setError(data.message || 'Failed to fetch statistics');
+        }
+      } catch (error) {
+        console.error('❌ Network error:', error);
+        setError('Network error occurred');
+      } finally {
+        setLoading(false);
+      }
+    };
+
     if (isOpen) {
       fetchStats();
     }
-  }, [isOpen]);
-
-  const fetchStats = async () => {
-    setLoading(true);
-    setError('');
-
-    try {
-      const token = localStorage.getItem('authToken');
-      const sessionId = localStorage.getItem('guestSessionId');
-      
-      let url = 'http://localhost:5002/api/results/stats/summary';
-      const headers = { 'Content-Type': 'application/json' };
-      
-      if (token) {
-        headers.Authorization = `Bearer ${token}`;
-      } else if (sessionId) {
-        url += `?sessionId=${sessionId}`;
-      }
-
-      const response = await fetch(url, { headers });
-      const data = await response.json();
-
-      if (data.success) {
-        setStats(data.data);
-      } else {
-        setError(data.message || 'Failed to fetch statistics');
-      }    } catch {
-      setError('Network error occurred');
-    } finally {
-      setLoading(false);
-    }
-  };
+  }, [isOpen, user]);
 
   if (!isOpen) return null;
 
@@ -62,6 +105,12 @@ const StatsDashboard = ({ isOpen, onClose }) => {
             <div className="error-message">{error}</div>
           ) : stats ? (
             <>
+              {/* Debug info - remove this in production */}
+              <details style={{ marginBottom: '1rem', fontSize: '0.8rem', color: '#999' }}>
+                <summary>Debug Info (Click to expand)</summary>
+                <pre>{JSON.stringify(stats, null, 2)}</pre>
+              </details>
+
               <div className="stats-summary">
                 <div className="stat-card">
                   <h3>Tests Completed</h3>
@@ -69,19 +118,19 @@ const StatsDashboard = ({ isOpen, onClose }) => {
                 </div>
                 <div className="stat-card">
                   <h3>Average WPM</h3>
-                  <div className="stat-value">{Math.round(stats.summary.averageWPM)}</div>
+                  <div className="stat-value">{Math.round(stats.summary.averageWPM || 0)}</div>
                 </div>
                 <div className="stat-card">
                   <h3>Best WPM</h3>
-                  <div className="stat-value">{Math.round(stats.summary.bestWPM)}</div>
+                  <div className="stat-value">{Math.round(stats.summary.bestWPM || 0)}</div>
                 </div>
                 <div className="stat-card">
                   <h3>Average Accuracy</h3>
-                  <div className="stat-value">{Math.round(stats.summary.averageAccuracy)}%</div>
+                  <div className="stat-value">{Math.round(stats.summary.averageAccuracy || 0)}%</div>
                 </div>
                 <div className="stat-card">
                   <h3>Best Accuracy</h3>
-                  <div className="stat-value">{Math.round(stats.summary.bestAccuracy)}%</div>
+                  <div className="stat-value">{Math.round(stats.summary.bestAccuracy || 0)}%</div>
                 </div>
                 <div className="stat-card">
                   <h3>Completed Tests</h3>
@@ -89,7 +138,7 @@ const StatsDashboard = ({ isOpen, onClose }) => {
                 </div>
                 <div className="stat-card">
                   <h3>Time Typing</h3>
-                  <div className="stat-value">{Math.round(stats.summary.totalTimeTyping / 60)}m</div>
+                  <div className="stat-value">{Math.round((stats.summary.totalTimeTyping || 0) / 60)}m</div>
                 </div>
               </div>
 
